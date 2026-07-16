@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, me, refreshToken, logout } = require('../controllers/auth.controller');
+const { register, login, adminLogin, me, refreshToken, logout } = require('../controllers/auth.controller');
 const authMiddleware = require('../middlewares/authMiddleware');
 
 const router = express.Router();
@@ -9,6 +9,9 @@ router.post('/register', register);
 
 // POST /api/auth/login
 router.post('/login', login);
+
+// POST /api/auth/admin/login
+router.post('/admin/login', adminLogin);
 
 // GET /api/auth/me
 router.get('/me', authMiddleware, me);

@@ -1,5 +1,5 @@
 const { registerSchema, loginSchema } = require('../validators/auth.validator');
-const { registerUser, loginUser } = require('../services/auth.service');
+const { registerUser, loginUser, loginAdmin } = require('../services/auth.service');
 const { verifyRefreshToken, generateAccessToken } = require('../utils/jwt.util');
 const prisma = require('../utils/prisma');
 
@@ -25,6 +25,19 @@ async function login(req, res, next) {
   try {
     const validated = loginSchema.parse(req.body);
     const result = await loginUser(validated.email, validated.password);
+    res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    if (err.name === 'ZodError') {
+      return res.status(400).json({ success: false, errors: formatZodError(err) });
+    }
+    next(err);
+  }
+}
+
+async function adminLogin(req, res, next) {
+  try {
+    const validated = loginSchema.parse(req.body);
+    const result = await loginAdmin(validated.email, validated.password);
     res.status(200).json({ success: true, data: result });
   } catch (err) {
     if (err.name === 'ZodError') {
@@ -84,4 +97,4 @@ async function logout(req, res, next) {
   res.status(200).json({ success: true, message: 'Logout berhasil' });
 }
 
-module.exports = { register, login, me, refreshToken, logout };
+module.exports = { register, login, adminLogin, me, refreshToken, logout };
