@@ -28,7 +28,7 @@
 |----|--------|-------|-----------|-------------|
 | 7  | ⏳     | Database Schema & Migration | Buat schema Prisma lengkap + migration awal | `issues/007-database-schema.md` |
 | 8  | ⏳     | Seed Data | Data awal untuk testing (admin user, kategori, dll) | `issues/008-seed-data.md` |
-| 9  | ⏳     | Auth Module (Backend) | Register, login, refresh token, logout | `issues/009-auth-backend.md` |
+| 9  | ✅     | Auth Module (Backend) | Register, login, refresh token, logout | `issues/009-auth-backend.md` |
 | 10 | ⏳     | User Management (Backend) | CRUD user, change password, update profile | `issues/010-user-management.md` |
 | 11 | ⏳     | Product Module (Backend) | CRUD produk + varian | `issues/011-product-module.md` |
 | 12 | ⏳     | Category Module (Backend) | CRUD kategori | `issues/012-category-module.md` |
