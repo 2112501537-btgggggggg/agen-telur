@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme {
+  --color-egg-yolk: #F5A623;
+  --color-warm-amber: #D4820A;
+  --color-fresh-cream: #FFF8EC;
+  --color-barn-brown: #5C4033;
+  --color-fresh-green: #6FA96E;
+  --color-alert-red: #E0553F;
+  --color-straw-yellow: #FCE9C5;
+}
