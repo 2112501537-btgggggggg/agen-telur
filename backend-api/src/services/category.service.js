@@ -56,6 +56,16 @@ async function deleteCategory(id) {
     throw err;
   }
 
+  // Check if any product uses this category
+  const productCount = await prisma.product.count({
+    where: { categoryId: id },
+  });
+  if (productCount > 0) {
+    const err = new Error('Kategori masih memiliki produk, tidak bisa dihapus');
+    err.status = 400;
+    throw err;
+  }
+
   return prisma.category.delete({
     where: { id },
   });
