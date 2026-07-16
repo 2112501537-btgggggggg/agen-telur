@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -8,6 +9,7 @@ const PORT = process.env.PORT || 4000;
 // Middlewares
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health Check Endpoint
 app.get('/health', (req, res) => {
@@ -19,12 +21,15 @@ const authRoutes = require('./routes/auth.routes');
 const adminRoutes = require('./routes/admin.routes');
 const { publicRouter: categoryPublicRoutes, adminRouter: categoryAdminRoutes } = require('./routes/category.routes');
 const addressRoutes = require('./routes/address.routes');
+const { publicRouter: productPublicRoutes, adminRouter: productAdminRoutes } = require('./routes/product.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryPublicRoutes);
 app.use('/api/admin/categories', categoryAdminRoutes);
 app.use('/api/users/me/addresses', addressRoutes);
+app.use('/api/products', productPublicRoutes);
+app.use('/api/admin/products', productAdminRoutes);
 
 // Centralized error handler
 app.use((err, req, res, next) => {
