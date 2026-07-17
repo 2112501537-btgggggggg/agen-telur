@@ -31,6 +31,7 @@ model User {
   updatedAt      DateTime       @updatedAt
   addresses      Address[]
   priceHistories PriceHistory[]
+  stockIns       StockIn[]
 }
 
 model Category {
@@ -88,6 +89,7 @@ model ProductVariant {
   lowStockThreshold  Decimal        @default(10) @db.Decimal(10, 2)
   lastPriceUpdateAt  DateTime?
   priceHistories     PriceHistory[]
+  stockIns           StockIn[]
 
   product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -110,4 +112,29 @@ model PriceHistory {
 
   variant          ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
   user             User           @relation(fields: [changedBy], references: [id])
+}
+
+model Supplier {
+  id        Int       @id @default(autoincrement())
+  name      String
+  contact   String
+  address   String?   @db.Text
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  stockIns  StockIn[]
+}
+
+model StockIn {
+  id               Int            @id @default(autoincrement())
+  supplierId       Int
+  productVariantId Int
+  quantityKg       Decimal        @db.Decimal(10, 2)
+  pricePerKg       Decimal        @db.Decimal(10, 2)
+  totalCost        Decimal        @db.Decimal(10, 2)
+  createdAt        DateTime       @default(now())
+  createdBy        Int
+
+  supplier         Supplier       @relation(fields: [supplierId], references: [id])
+  variant          ProductVariant @relation(fields: [productVariantId], references: [id])
+  user             User           @relation(fields: [createdBy], references: [id])
 }

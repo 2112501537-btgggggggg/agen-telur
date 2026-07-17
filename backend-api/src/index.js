@@ -23,6 +23,8 @@ const { publicRouter: categoryPublicRoutes, adminRouter: categoryAdminRoutes } =
 const addressRoutes = require('./routes/address.routes');
 const { publicRouter: productPublicRoutes, adminRouter: productAdminRoutes } = require('./routes/product.routes');
 const priceRoutes = require('./routes/price.routes');
+const supplierRoutes = require('./routes/supplier.routes');
+const stockInRoutes = require('./routes/stockIn.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -32,6 +34,8 @@ app.use('/api/users/me/addresses', addressRoutes);
 app.use('/api/products', productPublicRoutes);
 app.use('/api/admin/products', productAdminRoutes);
 app.use('/api/admin/products', priceRoutes);
+app.use('/api/admin/suppliers', supplierRoutes);
+app.use('/api/admin/stock-in', stockInRoutes);
 
 // Centralized error handler
 app.use((err, req, res, next) => {
