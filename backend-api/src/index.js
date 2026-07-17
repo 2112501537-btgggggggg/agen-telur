@@ -27,6 +27,8 @@ const membershipConfigRoutes = require('./routes/membershipConfig.routes');
 const priceRoutes = require('./routes/price.routes');
 const supplierRoutes = require('./routes/supplier.routes');
 const stockInRoutes = require('./routes/stockIn.routes');
+const orderRoutes = require('./routes/order.routes');
+const unitConversionRoutes = require('./routes/unitConversion.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -41,6 +43,8 @@ app.use('/api/admin/stock-in', stockInRoutes);
 app.use('/api/service-areas', serviceAreaPublicRoutes);
 app.use('/api/admin/service-areas', serviceAreaAdminRoutes);
 app.use('/api/admin/membership-config', membershipConfigRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/unit-conversions', unitConversionRoutes);
 
 // Centralized error handler
 app.use((err, req, res, next) => {
