@@ -19,17 +19,18 @@ enum Role {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
-  name        String
-  email       String   @unique
-  phone       String
-  password    String
-  role        Role     @default(CUSTOMER)
-  totalPoints Int      @default(0)
-  isMember    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  addresses   Address[]
+  id             Int            @id @default(autoincrement())
+  name           String
+  email          String         @unique
+  phone          String
+  password       String
+  role           Role           @default(CUSTOMER)
+  totalPoints    Int            @default(0)
+  isMember       Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  addresses      Address[]
+  priceHistories PriceHistory[]
 }
 
 model Category {
@@ -79,13 +80,14 @@ model Product {
 }
 
 model ProductVariant {
-  id                 Int      @id @default(autoincrement())
+  id                 Int            @id @default(autoincrement())
   productId          Int
   grade              Grade
-  pricePerKg         Decimal  @db.Decimal(10, 2)
-  stockKg            Decimal  @default(0) @db.Decimal(10, 2)
-  lowStockThreshold  Decimal  @default(10) @db.Decimal(10, 2)
+  pricePerKg         Decimal        @db.Decimal(10, 2)
+  stockKg            Decimal        @default(0) @db.Decimal(10, 2)
+  lowStockThreshold  Decimal        @default(10) @db.Decimal(10, 2)
   lastPriceUpdateAt  DateTime?
+  priceHistories     PriceHistory[]
 
   product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -96,4 +98,16 @@ model UnitConversion {
   id           Int     @id @default(autoincrement())
   unit         Unit    @unique
   kgEquivalent Decimal @db.Decimal(10, 3)
+}
+
+model PriceHistory {
+  id               Int            @id @default(autoincrement())
+  productVariantId Int
+  oldPrice         Decimal        @db.Decimal(10, 2)
+  newPrice         Decimal        @db.Decimal(10, 2)
+  changedBy        Int
+  changedAt        DateTime       @default(now())
+
+  variant          ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+  user             User           @relation(fields: [changedBy], references: [id])
 }

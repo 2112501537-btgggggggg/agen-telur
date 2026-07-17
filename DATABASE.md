@@ -128,6 +128,18 @@ UnitConversion (referensi global satuan)
 | createdAt | DateTime | |
 | createdBy | Int FK → User | staff/admin yang input |
 
+### StockAdjustment (Koreksi Stok Manual)
+> Untuk pencatatan penyesuaian stok di luar StockIn/penjualan — misal telur rusak, koreksi hitung fisik, dsb. Wajib diisi tiap kali endpoint `stock-adjustment` dipanggil, supaya ada jejak audit.
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | Int PK | |
+| productVariantId | Int FK → ProductVariant | |
+| changeKg | Decimal(10,2) | bisa negatif (stok berkurang) atau positif (stok bertambah) |
+| reason | String | contoh: "rusak", "koreksi hitung fisik" |
+| adjustedBy | Int FK → User | admin/staff yang melakukan |
+| createdAt | DateTime | default now() |
+
 ### ServiceArea
 | Kolom | Tipe | Keterangan |
 |---|---|---|
