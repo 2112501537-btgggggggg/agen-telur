@@ -9,6 +9,7 @@ const {
   listProductsPublic,
   getProductPublicDetail,
 } = require('../controllers/product.controller');
+const { adjust, history } = require('../controllers/stockAdjustment.controller');
 const authMiddleware = require('../middlewares/authMiddleware');
 const { requireRole } = require('../middlewares/roleMiddleware');
 const upload = require('../middlewares/upload.middleware');
@@ -20,16 +21,20 @@ const adminRouter = express.Router();
 publicRouter.get('/', listProductsPublic);
 publicRouter.get('/:id', getProductPublicDetail);
 
-// Admin routes (all require Admin role)
+// Admin routes (all require authMiddleware)
 adminRouter.use(authMiddleware);
-adminRouter.use(requireRole(['ADMIN']));
 
-adminRouter.post('/', upload.single('image'), createProduct);
-adminRouter.put('/:id', upload.single('image'), updateProduct);
-adminRouter.delete('/:id', softDeleteProduct);
-adminRouter.get('/', listProductsAdmin);
-adminRouter.post('/:id/variants', addVariant);
-adminRouter.put('/variants/:id', updateVariant);
+// Stock adjustment routes (Admin & Staff)
+adminRouter.post('/variants/:id/stock-adjustment', requireRole(['ADMIN', 'STAFF']), adjust);
+adminRouter.get('/variants/:id/stock-adjustments', requireRole(['ADMIN', 'STAFF']), history);
+
+// Product CRUD and variants setup routes (Admin only)
+adminRouter.post('/', requireRole(['ADMIN']), upload.single('image'), createProduct);
+adminRouter.put('/:id', requireRole(['ADMIN']), upload.single('image'), updateProduct);
+adminRouter.delete('/:id', requireRole(['ADMIN']), softDeleteProduct);
+adminRouter.get('/', requireRole(['ADMIN']), listProductsAdmin);
+adminRouter.post('/:id/variants', requireRole(['ADMIN']), addVariant);
+adminRouter.put('/variants/:id', requireRole(['ADMIN']), updateVariant);
 
 module.exports = {
   publicRouter,

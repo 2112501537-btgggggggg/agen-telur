@@ -19,19 +19,20 @@ enum Role {
 }
 
 model User {
-  id             Int            @id @default(autoincrement())
-  name           String
-  email          String         @unique
-  phone          String
-  password       String
-  role           Role           @default(CUSTOMER)
-  totalPoints    Int            @default(0)
-  isMember       Boolean        @default(false)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  addresses      Address[]
-  priceHistories PriceHistory[]
-  stockIns       StockIn[]
+  id               Int               @id @default(autoincrement())
+  name             String
+  email            String            @unique
+  phone            String
+  password         String
+  role             Role              @default(CUSTOMER)
+  totalPoints      Int               @default(0)
+  isMember         Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  addresses        Address[]
+  priceHistories   PriceHistory[]
+  stockIns         StockIn[]
+  stockAdjustments StockAdjustment[]
 }
 
 model Category {
@@ -81,15 +82,16 @@ model Product {
 }
 
 model ProductVariant {
-  id                 Int            @id @default(autoincrement())
+  id                 Int               @id @default(autoincrement())
   productId          Int
   grade              Grade
-  pricePerKg         Decimal        @db.Decimal(10, 2)
-  stockKg            Decimal        @default(0) @db.Decimal(10, 2)
-  lowStockThreshold  Decimal        @default(10) @db.Decimal(10, 2)
+  pricePerKg         Decimal           @db.Decimal(10, 2)
+  stockKg            Decimal           @default(0) @db.Decimal(10, 2)
+  lowStockThreshold  Decimal           @default(10) @db.Decimal(10, 2)
   lastPriceUpdateAt  DateTime?
   priceHistories     PriceHistory[]
   stockIns           StockIn[]
+  stockAdjustments   StockAdjustment[]
 
   product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
@@ -137,4 +139,16 @@ model StockIn {
   supplier         Supplier       @relation(fields: [supplierId], references: [id])
   variant          ProductVariant @relation(fields: [productVariantId], references: [id])
   user             User           @relation(fields: [createdBy], references: [id])
+}
+
+model StockAdjustment {
+  id               Int            @id @default(autoincrement())
+  productVariantId Int
+  changeKg         Decimal        @db.Decimal(10, 2)
+  reason           String
+  adjustedBy       Int
+  createdAt        DateTime       @default(now())
+
+  variant          ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
+  user             User           @relation(fields: [adjustedBy], references: [id])
 }
