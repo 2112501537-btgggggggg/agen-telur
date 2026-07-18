@@ -3,10 +3,25 @@ const { isAddressInServiceArea } = require('./serviceArea.service');
 const { getConfig } = require('./membershipConfig.service');
 
 async function validateCheckout(userId, addressId, items) {
-  // 1. Cek kepemilikan alamat
-  const address = await prisma.address.findUnique({
-    where: { id: addressId },
-  });
+  // 1. Optimize with parallel queries for address and user
+  const [address, user] = await Promise.all([
+    prisma.address.findUnique({
+      where: { id: addressId },
+      select: {
+        id: true,
+        userId: true,
+        city: true,
+        kecamatan: true,
+      },
+    }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        isMember: true,
+      },
+    }),
+  ]);
 
   if (!address || address.userId !== userId) {
     const err = new Error('Alamat tidak ditemukan atau bukan milik Anda');
@@ -23,18 +38,38 @@ async function validateCheckout(userId, addressId, items) {
     throw err;
   }
 
-  // 3. Ambil UnitConversion
-  const conversions = await prisma.unitConversion.findMany();
+  // 3. Parallel queries for conversions, variants, and config
+  const variantIds = items.map(item => item.productVariantId);
+  
+  const [conversions, variants, config] = await Promise.all([
+    prisma.unitConversion.findMany({
+      select: {
+        unit: true,
+        kgEquivalent: true,
+      },
+    }),
+    prisma.productVariant.findMany({
+      where: { id: { in: variantIds } },
+      select: {
+        id: true,
+        grade: true,
+        pricePerKg: true,
+        stockKg: true,
+        product: {
+          select: {
+            id: true,
+            name: true,
+            isActive: true,
+          },
+        },
+      },
+    }),
+    getConfig(),
+  ]);
+
   const conversionMap = {};
   conversions.forEach(c => {
     conversionMap[c.unit] = Number(c.kgEquivalent);
-  });
-
-  // 4. Proses tiap item
-  const variantIds = items.map(item => item.productVariantId);
-  const variants = await prisma.productVariant.findMany({
-    where: { id: { in: variantIds } },
-    include: { product: true },
   });
 
   const variantMap = {};
@@ -42,6 +77,7 @@ async function validateCheckout(userId, addressId, items) {
     variantMap[v.id] = v;
   });
 
+  // 4. Process items
   let totalWeightKg = 0;
   let subtotalAmount = 0;
   const itemsPreview = [];
@@ -80,7 +116,6 @@ async function validateCheckout(userId, addressId, items) {
   }
 
   // 5. Total berat & minimum order
-  const config = await getConfig();
   const minOrder = Number(config.minimumOrderKg);
   if (totalWeightKg < minOrder) {
     const needed = minOrder - totalWeightKg;
@@ -90,10 +125,6 @@ async function validateCheckout(userId, addressId, items) {
   }
 
   // 6. Hitung diskon member
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
-
   const discountPercent = user.isMember ? Number(config.memberDiscountPercent) : 0;
   const discountAmount = subtotalAmount * (discountPercent / 100);
   const totalAmount = subtotalAmount - discountAmount;
