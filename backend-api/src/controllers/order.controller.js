@@ -18,6 +18,30 @@ async function store(req, res, next) {
   }
 }
 
+async function index(req, res, next) {
+  try {
+    const result = await orderService.listOrders(req.user.id, req.query);
+    res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function show(req, res, next) {
+  try {
+    const orderId = parseInt(req.params.id, 10);
+    if (isNaN(orderId)) {
+      return res.status(400).json({ success: false, message: 'ID Pesanan harus berupa angka' });
+    }
+    const result = await orderService.getOrderDetail(req.user.id, orderId);
+    res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   store,
+  index,
+  show,
 };
