@@ -71,18 +71,57 @@ async function listStockIn(filters = {}) {
     }
   }
 
-  return prisma.stockIn.findMany({
-    where,
-    include: {
-      supplier: true,
-      variant: {
-        include: {
-          product: true,
+  // Add pagination support
+  const limit = parseInt(filters.limit, 10) || 20;
+  const page = parseInt(filters.page, 10) || 1;
+  const skip = (page - 1) * limit;
+
+  const [stockIns, total] = await prisma.$transaction([
+    prisma.stockIn.findMany({
+      where,
+      include: {
+        supplier: {
+          select: {
+            id: true,
+            name: true,
+            contact: true,
+          },
+        },
+        variant: {
+          select: {
+            id: true,
+            grade: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
       },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.stockIn.count({ where }),
+  ]);
+
+  return {
+    stockIns,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     },
-    orderBy: { createdAt: 'desc' },
-  });
+  };
 }
 
 module.exports = {

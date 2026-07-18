@@ -56,6 +56,8 @@ model Address {
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   orders      Order[]
+
+  @@index([userId])
 }
 
 enum Grade {
@@ -82,6 +84,10 @@ model Product {
 
   category    Category         @relation(fields: [categoryId], references: [id])
   variants    ProductVariant[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([categoryId, isActive])
 }
 
 model ProductVariant {
@@ -100,6 +106,8 @@ model ProductVariant {
   product            Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([productId, grade])
+  @@index([productId])
+  @@index([stockKg])
 }
 
 model UnitConversion {
@@ -118,6 +126,9 @@ model PriceHistory {
 
   variant          ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
   user             User           @relation(fields: [changedBy], references: [id])
+
+  @@index([productVariantId])
+  @@index([changedAt])
 }
 
 model Supplier {
@@ -143,6 +154,10 @@ model StockIn {
   supplier         Supplier       @relation(fields: [supplierId], references: [id])
   variant          ProductVariant @relation(fields: [productVariantId], references: [id])
   user             User           @relation(fields: [createdBy], references: [id])
+
+  @@index([productVariantId])
+  @@index([supplierId])
+  @@index([createdAt])
 }
 
 model StockAdjustment {
@@ -155,6 +170,9 @@ model StockAdjustment {
 
   variant          ProductVariant @relation(fields: [productVariantId], references: [id], onDelete: Cascade)
   user             User           @relation(fields: [adjustedBy], references: [id])
+
+  @@index([productVariantId])
+  @@index([createdAt])
 }
 
 model ServiceArea {
@@ -164,6 +182,10 @@ model ServiceArea {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([city])
+  @@index([isActive])
+  @@index([city, kecamatan])
 }
 
 model MembershipConfig {
@@ -219,6 +241,12 @@ model Order {
   codConfirmer          User?           @relation("CodConfirmer", fields: [codConfirmedBy], references: [id])
   address               Address         @relation(fields: [addressId], references: [id])
   items                 OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+  @@index([userId, status])
 }
 
 model OrderItem {
@@ -233,4 +261,7 @@ model OrderItem {
 
   order              Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
   variant            ProductVariant @relation(fields: [productVariantId], references: [id])
+
+  @@index([orderId])
+  @@index([productVariantId])
 }

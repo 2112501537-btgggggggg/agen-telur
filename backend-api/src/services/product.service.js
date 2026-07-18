@@ -32,14 +32,47 @@ async function listProductsAdmin(filters = {}) {
     where.categoryId = parseInt(filters.categoryId, 10);
   }
 
-  return prisma.product.findMany({
-    where,
-    include: {
-      category: true,
-      variants: true,
+  // Add pagination support
+  const limit = parseInt(filters.limit, 10) || 20;
+  const page = parseInt(filters.page, 10) || 1;
+  const skip = (page - 1) * limit;
+
+  const [products, total] = await prisma.$transaction([
+    prisma.product.findMany({
+      where,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        variants: {
+          select: {
+            id: true,
+            grade: true,
+            pricePerKg: true,
+            stockKg: true,
+            lowStockThreshold: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.product.count({ where }),
+  ]);
+
+  return {
+    products,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     },
-    orderBy: { createdAt: 'desc' },
-  });
+  };
 }
 
 async function updateProduct(id, { name, categoryId, description }, imageFile) {

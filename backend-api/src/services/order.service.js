@@ -254,26 +254,44 @@ async function listOrders(userId, filters = {}) {
     where.status = filters.status;
   }
 
-  const orders = await prisma.order.findMany({
-    where,
-    orderBy: {
-      createdAt: 'desc',
-    },
-    select: {
-      id: true,
-      orderNumber: true,
-      status: true,
-      paymentStatus: true,
-      paymentType: true,
-      totalAmount: true,
-      createdAt: true,
-    },
-  });
+  // Add pagination support
+  const limit = parseInt(filters.limit, 10) || 20;
+  const page = parseInt(filters.page, 10) || 1;
+  const skip = (page - 1) * limit;
 
-  return orders.map(order => ({
-    ...order,
-    totalAmount: Number(order.totalAmount),
-  }));
+  const [orders, total] = await prisma.$transaction([
+    prisma.order.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      select: {
+        id: true,
+        orderNumber: true,
+        status: true,
+        paymentStatus: true,
+        paymentType: true,
+        totalAmount: true,
+        createdAt: true,
+      },
+      skip,
+      take: limit,
+    }),
+    prisma.order.count({ where }),
+  ]);
+
+  return {
+    orders: orders.map(order => ({
+      ...order,
+      totalAmount: Number(order.totalAmount),
+    })),
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
 }
 
 async function getOrderDetail(userId, orderId) {
