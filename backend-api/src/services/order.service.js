@@ -247,6 +247,101 @@ async function createOrder(userId, data) {
   }
 }
 
+async function listOrders(userId, filters = {}) {
+  const where = { userId };
+
+  if (filters.status) {
+    where.status = filters.status;
+  }
+
+  const orders = await prisma.order.findMany({
+    where,
+    orderBy: {
+      createdAt: 'desc',
+    },
+    select: {
+      id: true,
+      orderNumber: true,
+      status: true,
+      paymentStatus: true,
+      paymentType: true,
+      totalAmount: true,
+      createdAt: true,
+    },
+  });
+
+  return orders.map(order => ({
+    ...order,
+    totalAmount: Number(order.totalAmount),
+  }));
+}
+
+async function getOrderDetail(userId, orderId) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      address: true,
+      items: {
+        include: {
+          variant: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    const err = new Error('Pesanan tidak ditemukan');
+    err.status = 404;
+    throw err;
+  }
+
+  if (order.userId !== userId) {
+    const err = new Error('Anda tidak memiliki akses ke pesanan ini');
+    err.status = 403;
+    throw err;
+  }
+
+  return {
+    id: order.id,
+    orderNumber: order.orderNumber,
+    userId: order.userId,
+    addressId: order.addressId,
+    status: order.status,
+    totalWeightKg: Number(order.totalWeightKg),
+    subtotalAmount: Number(order.subtotalAmount),
+    discountAmount: Number(order.discountAmount),
+    totalAmount: Number(order.totalAmount),
+    paymentStatus: order.paymentStatus,
+    paymentType: order.paymentType,
+    midtransOrderId: order.midtransOrderId,
+    midtransTransactionId: order.midtransTransactionId,
+    paymentChannel: order.paymentChannel,
+    codConfirmedBy: order.codConfirmedBy,
+    codConfirmedAt: order.codConfirmedAt,
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+    address: order.address,
+    items: order.items.map(item => ({
+      id: item.id,
+      orderId: item.orderId,
+      productVariantId: item.productVariantId,
+      unit: item.unit,
+      quantity: Number(item.quantity),
+      weightKgEquivalent: Number(item.weightKgEquivalent),
+      pricePerKg: Number(item.pricePerKg),
+      subtotal: Number(item.subtotal),
+      productName: item.variant.product.name,
+      grade: item.variant.grade,
+    })),
+  };
+}
+
 module.exports = {
   createOrder,
+  listOrders,
+  getOrderDetail,
 };
