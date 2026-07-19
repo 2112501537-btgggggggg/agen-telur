@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 async function listAddresses(userId) {
   return prisma.address.findMany({
@@ -49,15 +50,11 @@ async function updateAddress(userId, addressId, data) {
   });
 
   if (!address) {
-    const err = new Error('Alamat tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Alamat tidak ditemukan');
   }
 
   if (address.userId !== userId) {
-    const err = new Error('Akses ditolak');
-    err.status = 403;
-    throw err;
+    throw new AppError(403, 'Akses ditolak');
   }
 
   // If setting to default, transaction is needed
@@ -90,15 +87,11 @@ async function deleteAddress(userId, addressId) {
   });
 
   if (!address) {
-    const err = new Error('Alamat tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Alamat tidak ditemukan');
   }
 
   if (address.userId !== userId) {
-    const err = new Error('Akses ditolak');
-    err.status = 403;
-    throw err;
+    throw new AppError(403, 'Akses ditolak');
   }
 
   return prisma.address.delete({

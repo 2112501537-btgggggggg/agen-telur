@@ -1,34 +1,19 @@
 const { productSchema, variantSchema } = require('../validators/product.validator');
 const productService = require('../services/product.service');
+const asyncHandler = require('../utils/asyncHandler');
 
-function formatZodError(err) {
-  return err.issues.map(e => ({ path: e.path.join('.'), message: e.message }));
-}
-
-async function createProduct(req, res, next) {
-  try {
+const createProduct = asyncHandler(async (req, res) => {
     const validated = productSchema.parse(req.body);
     const product = await productService.createProduct(validated, req.file);
     res.status(201).json({ success: true, data: product });
-  } catch (err) {
-    if (err.name === 'ZodError') {
-      return res.status(400).json({ success: false, errors: formatZodError(err) });
-    }
-    next(err);
-  }
-}
+});
 
-async function listProductsAdmin(req, res, next) {
-  try {
+const listProductsAdmin = asyncHandler(async (req, res) => {
     const products = await productService.listProductsAdmin(req.query);
     res.status(200).json({ success: true, data: products });
-  } catch (err) {
-    next(err);
-  }
-}
+});
 
-async function updateProduct(req, res, next) {
-  try {
+const updateProduct = asyncHandler(async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.status(400).json({ success: false, message: 'ID tidak valid' });
@@ -37,16 +22,9 @@ async function updateProduct(req, res, next) {
     const validated = productSchema.partial().parse(req.body);
     const product = await productService.updateProduct(id, validated, req.file);
     res.status(200).json({ success: true, data: product });
-  } catch (err) {
-    if (err.name === 'ZodError') {
-      return res.status(400).json({ success: false, errors: formatZodError(err) });
-    }
-    next(err);
-  }
-}
+});
 
-async function softDeleteProduct(req, res, next) {
-  try {
+const softDeleteProduct = asyncHandler(async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.status(400).json({ success: false, message: 'ID tidak valid' });
@@ -54,13 +32,9 @@ async function softDeleteProduct(req, res, next) {
 
     await productService.softDeleteProduct(id);
     res.status(200).json({ success: true, message: 'Produk berhasil dihapus' });
-  } catch (err) {
-    next(err);
-  }
-}
+});
 
-async function addVariant(req, res, next) {
-  try {
+const addVariant = asyncHandler(async (req, res) => {
     const productId = parseInt(req.params.id, 10);
     if (isNaN(productId)) {
       return res.status(400).json({ success: false, message: 'ID produk tidak valid' });
@@ -69,16 +43,9 @@ async function addVariant(req, res, next) {
     const validated = variantSchema.parse(req.body);
     const variant = await productService.addVariant(productId, validated);
     res.status(201).json({ success: true, data: variant });
-  } catch (err) {
-    if (err.name === 'ZodError') {
-      return res.status(400).json({ success: false, errors: formatZodError(err) });
-    }
-    next(err);
-  }
-}
+});
 
-async function updateVariant(req, res, next) {
-  try {
+const updateVariant = asyncHandler(async (req, res) => {
     const variantId = parseInt(req.params.id, 10);
     if (isNaN(variantId)) {
       return res.status(400).json({ success: false, message: 'ID varian tidak valid' });
@@ -87,25 +54,14 @@ async function updateVariant(req, res, next) {
     const validated = variantSchema.partial().parse(req.body);
     const variant = await productService.updateVariant(variantId, validated);
     res.status(200).json({ success: true, data: variant });
-  } catch (err) {
-    if (err.name === 'ZodError') {
-      return res.status(400).json({ success: false, errors: formatZodError(err) });
-    }
-    next(err);
-  }
-}
+});
 
-async function listProductsPublic(req, res, next) {
-  try {
+const listProductsPublic = asyncHandler(async (req, res) => {
     const result = await productService.listProductsPublic(req.query);
     res.status(200).json({ success: true, data: result.products, meta: result.meta });
-  } catch (err) {
-    next(err);
-  }
-}
+});
 
-async function getProductPublicDetail(req, res, next) {
-  try {
+const getProductPublicDetail = asyncHandler(async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.status(400).json({ success: false, message: 'ID tidak valid' });
@@ -113,10 +69,7 @@ async function getProductPublicDetail(req, res, next) {
 
     const product = await productService.getProductPublicDetail(id);
     res.status(200).json({ success: true, data: product });
-  } catch (err) {
-    next(err);
-  }
-}
+});
 
 module.exports = {
   createProduct,

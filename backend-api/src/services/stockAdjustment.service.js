@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 async function adjustStock(variantId, changeKg, reason, adminUserId) {
   const variant = await prisma.productVariant.findUnique({
@@ -6,9 +7,7 @@ async function adjustStock(variantId, changeKg, reason, adminUserId) {
   });
 
   if (!variant) {
-    const err = new Error('Varian produk tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Varian produk tidak ditemukan');
   }
 
   // Parse decimals to numbers to avoid float inaccuracies during logic checks
@@ -16,9 +15,7 @@ async function adjustStock(variantId, changeKg, reason, adminUserId) {
   const newStock = currentStock + changeKg;
 
   if (newStock < 0) {
-    const err = new Error(`Stok tidak cukup, sisa stok saat ini hanya ${currentStock} kg`);
-    err.status = 400;
-    throw err;
+    throw new AppError(400, `Stok tidak cukup, sisa stok saat ini hanya ${currentStock} kg`);
   }
 
   return prisma.$transaction(async (tx) => {
@@ -50,9 +47,7 @@ async function getAdjustmentHistory(variantId) {
   });
 
   if (!variant) {
-    const err = new Error('Varian produk tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Varian produk tidak ditemukan');
   }
 
   return prisma.stockAdjustment.findMany({

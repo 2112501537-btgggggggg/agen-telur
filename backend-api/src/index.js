@@ -32,6 +32,7 @@ const unitConversionRoutes = require('./routes/unitConversion.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const reviewRoutes = require('./routes/review.routes');
+const errorHandler = require('./middlewares/errorHandler');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -53,12 +54,7 @@ app.use('/api/admin', dashboardRoutes);
 app.use('/api', reviewRoutes);
 
 // Centralized error handler
-app.use((err, req, res, next) => {
-  console.error(err);
-  const status = err.status || 500;
-  const message = err.message || 'Internal Server Error';
-  res.status(status).json({ success: false, message });
-});
+app.use(errorHandler);
 
 // Start Server
 app.listen(PORT, () => {

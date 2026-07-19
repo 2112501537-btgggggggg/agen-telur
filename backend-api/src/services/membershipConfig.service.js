@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 async function getConfig() {
   const config = await prisma.membershipConfig.findUnique({
@@ -6,9 +7,7 @@ async function getConfig() {
   });
 
   if (!config) {
-    const err = new Error('Config belum di-set di database. Hubungi developer.');
-    err.status = 500;
-    throw err;
+    throw new AppError(500, 'Config belum di-set di database. Hubungi developer.');
   }
 
   return config;
@@ -20,9 +19,7 @@ async function updateConfig(data) {
   });
 
   if (!existing) {
-    const err = new Error('Config belum di-set di database. Hubungi developer.');
-    err.status = 500;
-    throw err;
+    throw new AppError(500, 'Config belum di-set di database. Hubungi developer.');
   }
 
   return prisma.membershipConfig.update({
