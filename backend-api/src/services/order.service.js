@@ -495,6 +495,80 @@ async function updateOrderStatus(orderId, newStatus) {
     throw err;
   }
 
+  // Jika akan set DELIVERED, validasi paymentStatus dan sisipkan logika poin
+  if (newStatus === 'DELIVERED') {
+    if (order.paymentStatus !== 'PAID') {
+      const err = new Error('Order belum dibayar. Untuk COD, konfirmasi pembayaran dulu lewat endpoint confirm-cod-payment sebelum menandai DELIVERED.');
+      err.status = 400;
+      throw err;
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      // Update status order
+      const updatedOrder = await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'DELIVERED' },
+      });
+
+      // Ambil config membership
+      const config = await tx.membershipConfig.findUnique({
+        where: { id: 1 },
+      });
+
+      if (config) {
+        // Hitung poin
+        const pointsEarned = Math.floor(Number(order.totalAmount) * Number(config.pointsPerRupiah));
+
+        if (pointsEarned > 0) {
+          // Ambil data user
+          const user = await tx.user.findUnique({
+            where: { id: order.userId },
+          });
+
+          const newTotalPoints = user.totalPoints + pointsEarned;
+
+          // Update user: tambah poin & upgrade member jika memenuhi threshold
+          await tx.user.update({
+            where: { id: order.userId },
+            data: {
+              totalPoints: newTotalPoints,
+              isMember: !user.isMember && newTotalPoints >= Number(config.pointsThresholdForMember) ? true : user.isMember,
+            },
+          });
+        }
+
+        return {
+          id: updatedOrder.id,
+          orderNumber: updatedOrder.orderNumber,
+          status: updatedOrder.status,
+          pointsEarned,
+        };
+      }
+
+      return {
+        id: updatedOrder.id,
+        orderNumber: updatedOrder.orderNumber,
+        status: updatedOrder.status,
+        pointsEarned: 0,
+      };
+    });
+
+    // Ambil user terbaru untuk return points info
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: order.userId },
+      select: { totalPoints: true, isMember: true },
+    });
+
+    return {
+      id: result.id,
+      orderNumber: result.orderNumber,
+      status: result.status,
+      pointsEarned: result.pointsEarned,
+      totalPoints: updatedUser.totalPoints,
+      isMember: updatedUser.isMember,
+    };
+  }
+
   const updatedOrder = await prisma.order.update({
     where: { id: orderId },
     data: { status: newStatus },
