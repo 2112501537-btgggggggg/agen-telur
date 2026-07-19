@@ -35,6 +35,7 @@ model User {
   stockAdjustments StockAdjustment[]
   orders           Order[]           @relation("UserOrders")
   confirmedCod     Order[]           @relation("CodConfirmer")
+  reviews          Review[]
 }
 
 model Category {
@@ -219,6 +220,7 @@ model Order {
   codConfirmer          User?           @relation("CodConfirmer", fields: [codConfirmedBy], references: [id])
   address               Address         @relation(fields: [addressId], references: [id])
   items                 OrderItem[]
+  review                Review?
 }
 
 model OrderItem {
@@ -233,4 +235,17 @@ model OrderItem {
 
   order              Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
   variant            ProductVariant @relation(fields: [productVariantId], references: [id])
+}
+
+model Review {
+  id              Int      @id @default(autoincrement())
+  orderId         Int      @unique
+  userId          Int
+  rating          Int
+  comment         String?  @db.Text
+  damagedEggCount Int?
+  createdAt       DateTime @default(now())
+
+  order           Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id])
 }
