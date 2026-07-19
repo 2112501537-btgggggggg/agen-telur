@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 async function submitReview(userId, orderId, data) {
   // 1. Ambil Order
@@ -7,23 +8,17 @@ async function submitReview(userId, orderId, data) {
   });
 
   if (!order) {
-    const err = new Error('Pesanan tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Pesanan tidak ditemukan');
   }
 
   // 2. Cek kepemilikan
   if (order.userId !== userId) {
-    const err = new Error('Anda tidak memiliki akses ke pesanan ini');
-    err.status = 403;
-    throw err;
+    throw new AppError(403, 'Anda tidak memiliki akses ke pesanan ini');
   }
 
   // 3. Cek status: hanya DELIVERED yang bisa direview
   if (order.status !== 'DELIVERED') {
-    const err = new Error('Hanya pesanan yang sudah selesai yang bisa direview');
-    err.status = 400;
-    throw err;
+    throw new AppError(400, 'Hanya pesanan yang sudah selesai yang bisa direview');
   }
 
   // 4. Cek belum pernah review sebelumnya
@@ -32,9 +27,7 @@ async function submitReview(userId, orderId, data) {
   });
 
   if (existingReview) {
-    const err = new Error('Anda sudah pernah memberi review untuk pesanan ini');
-    err.status = 400;
-    throw err;
+    throw new AppError(400, 'Anda sudah pernah memberi review untuk pesanan ini');
   }
 
   // 5. Buat Review baru

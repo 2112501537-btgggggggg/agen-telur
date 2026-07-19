@@ -1,13 +1,12 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 const { verifySignature } = require('../utils/midtransSignature.util');
 
 async function handleMidtransNotification(payload) {
   // 1. Verifikasi Signature
   const isValid = verifySignature(payload);
   if (!isValid) {
-    const err = new Error('Signature tidak valid');
-    err.status = 401;
-    throw err;
+    throw new AppError(401, 'Signature tidak valid');
   }
 
   // 2. Cari Order
@@ -16,9 +15,7 @@ async function handleMidtransNotification(payload) {
   });
 
   if (!order) {
-    const err = new Error(`Order dengan nomor ${payload.order_id} tidak ditemukan`);
-    err.status = 404;
-    throw err;
+    throw new AppError(404, `Order dengan nomor ${payload.order_id} tidak ditemukan`);
   }
 
   // 3. Petakan transaction_status

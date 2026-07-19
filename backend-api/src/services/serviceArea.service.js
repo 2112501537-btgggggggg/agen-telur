@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 async function listActiveServiceAreas() {
   return prisma.serviceArea.findMany({
@@ -31,9 +32,7 @@ async function updateServiceArea(id, data) {
   });
 
   if (!existing) {
-    const err = new Error('Area layanan tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Area layanan tidak ditemukan');
   }
 
   return prisma.serviceArea.update({
@@ -48,9 +47,7 @@ async function deleteServiceArea(id) {
   });
 
   if (!existing) {
-    const err = new Error('Area layanan tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Area layanan tidak ditemukan');
   }
 
   return prisma.serviceArea.delete({

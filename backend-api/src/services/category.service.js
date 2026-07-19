@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 async function listCategories() {
   return prisma.category.findMany({
@@ -11,9 +12,7 @@ async function createCategory({ name }) {
     where: { name },
   });
   if (existing) {
-    const err = new Error('Nama kategori sudah terdaftar');
-    err.status = 409;
-    throw err;
+    throw new AppError(409, 'Nama kategori sudah terdaftar');
   }
 
   return prisma.category.create({
@@ -26,18 +25,14 @@ async function updateCategory(id, { name }) {
     where: { name },
   });
   if (existing && existing.id !== id) {
-    const err = new Error('Nama kategori sudah terdaftar');
-    err.status = 409;
-    throw err;
+    throw new AppError(409, 'Nama kategori sudah terdaftar');
   }
 
   const category = await prisma.category.findUnique({
     where: { id },
   });
   if (!category) {
-    const err = new Error('Kategori tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Kategori tidak ditemukan');
   }
 
   return prisma.category.update({
@@ -51,9 +46,7 @@ async function deleteCategory(id) {
     where: { id },
   });
   if (!category) {
-    const err = new Error('Kategori tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Kategori tidak ditemukan');
   }
 
   // Check if any product uses this category
@@ -61,9 +54,7 @@ async function deleteCategory(id) {
     where: { categoryId: id },
   });
   if (productCount > 0) {
-    const err = new Error('Kategori masih memiliki produk, tidak bisa dihapus');
-    err.status = 400;
-    throw err;
+    throw new AppError(400, 'Kategori masih memiliki produk, tidak bisa dihapus');
   }
 
   return prisma.category.delete({

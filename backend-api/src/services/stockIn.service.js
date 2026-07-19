@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 async function createStockIn(data, adminUserId) {
   const { supplierId, productVariantId, quantityKg, pricePerKg } = data;
@@ -7,18 +8,14 @@ async function createStockIn(data, adminUserId) {
     where: { id: supplierId },
   });
   if (!supplier) {
-    const err = new Error('Supplier tidak ditemukan');
-    err.status = 400;
-    throw err;
+    throw new AppError(400, 'Supplier tidak ditemukan');
   }
 
   const variant = await prisma.productVariant.findUnique({
     where: { id: productVariantId },
   });
   if (!variant) {
-    const err = new Error('Varian produk tidak ditemukan');
-    err.status = 400;
-    throw err;
+    throw new AppError(400, 'Varian produk tidak ditemukan');
   }
 
   const totalCost = quantityKg * pricePerKg;

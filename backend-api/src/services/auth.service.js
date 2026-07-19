@@ -1,17 +1,15 @@
 const bcrypt = require('bcryptjs');
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 /**
  * Register a new user.
- * @throws {Error} with status 409 if email already exists.
  */
 async function registerUser({ name, email, phone, password }) {
   // check duplicate email
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    const err = new Error('Email sudah terdaftar');
-    err.status = 409;
-    throw err;
+    throw new AppError(409, 'Email sudah terdaftar');
   }
 
   const hashed = await bcrypt.hash(password, 10);
@@ -40,21 +38,16 @@ const { generateAccessToken, generateRefreshToken } = require('../utils/jwt.util
 
 /**
  * Login a user.
- * @throws {Error} with status 401 if credentials are invalid.
  */
 async function loginUser(email, password) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    const err = new Error('Email atau password salah');
-    err.status = 401;
-    throw err;
+    throw new AppError(401, 'Email atau password salah');
   }
 
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) {
-    const err = new Error('Email atau password salah');
-    err.status = 401;
-    throw err;
+    throw new AppError(401, 'Email atau password salah');
   }
 
   const payload = { id: user.id, role: user.role };
@@ -73,22 +66,16 @@ async function loginUser(email, password) {
 async function loginAdmin(email, password) {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
-    const err = new Error('Email atau password salah');
-    err.status = 401;
-    throw err;
+    throw new AppError(401, 'Email atau password salah');
   }
 
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) {
-    const err = new Error('Email atau password salah');
-    err.status = 401;
-    throw err;
+    throw new AppError(401, 'Email atau password salah');
   }
 
   if (user.role !== 'ADMIN' && user.role !== 'STAFF') {
-    const err = new Error('Akun ini bukan akun admin/staff');
-    err.status = 403;
-    throw err;
+    throw new AppError(403, 'Akun ini bukan akun admin/staff');
   }
 
   const payload = { id: user.id, role: user.role };

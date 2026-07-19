@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 const { validateCheckout } = require('./checkout.service');
 const { generateOrderNumber } = require('../utils/orderNumber.util');
 const { snap } = require('../utils/midtrans.util');
@@ -21,15 +22,11 @@ async function createOrder(userId, data) {
         });
 
         if (!variant) {
-          const err = new Error('Varian produk tidak ditemukan');
-          err.status = 400;
-          throw err;
+          throw new AppError(400, 'Varian produk tidak ditemukan');
         }
 
         if (Number(item.weightKgEquivalent) > Number(variant.stockKg)) {
-          const err = new Error(`Stok ${variant.product.name} (${variant.grade}) tidak cukup, sisa ${variant.stockKg}kg`);
-          err.status = 400;
-          throw err;
+          throw new AppError(400, `Stok ${variant.product.name} (${variant.grade}) tidak cukup, sisa ${variant.stockKg}kg`);
         }
 
         itemsWithUpdatedInfo.push({
@@ -110,15 +107,11 @@ async function createOrder(userId, data) {
         });
 
         if (!variant) {
-          const err = new Error('Varian produk tidak ditemukan');
-          err.status = 400;
-          throw err;
+          throw new AppError(400, 'Varian produk tidak ditemukan');
         }
 
         if (Number(item.weightKgEquivalent) > Number(variant.stockKg)) {
-          const err = new Error(`Stok ${variant.product.name} (${variant.grade}) tidak cukup, sisa ${variant.stockKg}kg`);
-          err.status = 400;
-          throw err;
+          throw new AppError(400, `Stok ${variant.product.name} (${variant.grade}) tidak cukup, sisa ${variant.stockKg}kg`);
         }
 
         itemsWithUpdatedInfo.push({
@@ -229,9 +222,7 @@ async function createOrder(userId, data) {
         });
       });
 
-      const err = new Error('Gagal memproses pembayaran, silakan coba lagi.');
-      err.status = 500;
-      throw err;
+      throw new AppError(500, 'Gagal memproses pembayaran, silakan coba lagi.');
     }
 
     // Langkah C: Jika sukses, update order setting midtransOrderId
@@ -295,15 +286,11 @@ async function getOrderDetail(userId, orderId) {
   });
 
   if (!order) {
-    const err = new Error('Pesanan tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Pesanan tidak ditemukan');
   }
 
   if (order.userId !== userId) {
-    const err = new Error('Anda tidak memiliki akses ke pesanan ini');
-    err.status = 403;
-    throw err;
+    throw new AppError(403, 'Anda tidak memiliki akses ke pesanan ini');
   }
 
   return {
@@ -420,9 +407,7 @@ async function getOrderDetailAdmin(orderId) {
   });
 
   if (!order) {
-    const err = new Error('Pesanan tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Pesanan tidak ditemukan');
   }
 
   return {
@@ -467,40 +452,30 @@ async function updateOrderStatus(orderId, newStatus) {
   });
 
   if (!order) {
-    const err = new Error('Pesanan tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Pesanan tidak ditemukan');
   }
 
   // Cek terminal state: CANCELLED atau DELIVERED tidak bisa diubah lagi
   if (order.status === 'CANCELLED' || order.status === 'DELIVERED') {
-    const err = new Error(`Order sudah dalam status akhir (${order.status}), tidak bisa diubah lagi`);
-    err.status = 400;
-    throw err;
+    throw new AppError(400, `Order sudah dalam status akhir (${order.status}), tidak bisa diubah lagi`);
   }
 
   // Pastikan newStatus bukan CANCELLED (CANCELLED tidak ada di STATUS_ORDER)
   if (newStatus === 'CANCELLED') {
-    const err = new Error('Gunakan endpoint cancel untuk membatalkan order');
-    err.status = 400;
-    throw err;
+    throw new AppError(400, 'Gunakan endpoint cancel untuk membatalkan order');
   }
 
   const currentIndex = STATUS_ORDER.indexOf(order.status);
   const newIndex = STATUS_ORDER.indexOf(newStatus);
 
   if (newIndex <= currentIndex) {
-    const err = new Error('Tidak bisa mengubah status ke urutan yang sama atau mundur');
-    err.status = 400;
-    throw err;
+    throw new AppError(400, 'Tidak bisa mengubah status ke urutan yang sama atau mundur');
   }
 
   // Jika akan set DELIVERED, validasi paymentStatus dan sisipkan logika poin
   if (newStatus === 'DELIVERED') {
     if (order.paymentStatus !== 'PAID') {
-      const err = new Error('Order belum dibayar. Untuk COD, konfirmasi pembayaran dulu lewat endpoint confirm-cod-payment sebelum menandai DELIVERED.');
-      err.status = 400;
-      throw err;
+      throw new AppError(400, 'Order belum dibayar. Untuk COD, konfirmasi pembayaran dulu lewat endpoint confirm-cod-payment sebelum menandai DELIVERED.');
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -588,17 +563,13 @@ async function cancelOrder(orderId) {
   });
 
   if (!order) {
-    const err = new Error('Pesanan tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Pesanan tidak ditemukan');
   }
 
   // Validasi status: hanya PENDING, CONFIRMED, PROCESSING yang bisa dibatalkan
   const cancellableStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING'];
   if (!cancellableStatuses.includes(order.status)) {
-    const err = new Error(`Order dengan status ${order.status} tidak bisa dibatalkan`);
-    err.status = 400;
-    throw err;
+    throw new AppError(400, `Order dengan status ${order.status} tidak bisa dibatalkan`);
   }
 
   // Jalankan dalam transaction: update status + kembalikan stok
@@ -639,21 +610,15 @@ async function confirmCodPayment(orderId, adminUserId) {
   });
 
   if (!order) {
-    const err = new Error('Pesanan tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Pesanan tidak ditemukan');
   }
 
   if (order.paymentType !== 'COD') {
-    const err = new Error('Order ini menggunakan Midtrans, status pembayarannya otomatis lewat webhook, bukan konfirmasi manual');
-    err.status = 400;
-    throw err;
+    throw new AppError(400, 'Order ini menggunakan Midtrans, status pembayarannya otomatis lewat webhook, bukan konfirmasi manual');
   }
 
   if (order.paymentStatus === 'PAID') {
-    const err = new Error('Pembayaran order ini sudah dikonfirmasi sebelumnya');
-    err.status = 400;
-    throw err;
+    throw new AppError(400, 'Pembayaran order ini sudah dikonfirmasi sebelumnya');
   }
 
   const updatedOrder = await prisma.order.update({

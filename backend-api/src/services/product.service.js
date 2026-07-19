@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 async function createProduct({ name, categoryId, description }, imageFile) {
   // Validate category existence
@@ -6,9 +7,7 @@ async function createProduct({ name, categoryId, description }, imageFile) {
     where: { id: categoryId },
   });
   if (!category) {
-    const err = new Error('Kategori tidak ditemukan');
-    err.status = 400;
-    throw err;
+    throw new AppError(400, 'Kategori tidak ditemukan');
   }
 
   const imageUrl = imageFile ? `/uploads/${imageFile.filename}` : null;
@@ -47,9 +46,7 @@ async function updateProduct(id, { name, categoryId, description }, imageFile) {
     where: { id },
   });
   if (!product) {
-    const err = new Error('Produk tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Produk tidak ditemukan');
   }
 
   if (categoryId) {
@@ -57,9 +54,7 @@ async function updateProduct(id, { name, categoryId, description }, imageFile) {
       where: { id: categoryId },
     });
     if (!category) {
-      const err = new Error('Kategori tidak ditemukan');
-      err.status = 400;
-      throw err;
+      throw new AppError(400, 'Kategori tidak ditemukan');
     }
   }
 
@@ -83,9 +78,7 @@ async function softDeleteProduct(id) {
     where: { id },
   });
   if (!product) {
-    const err = new Error('Produk tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Produk tidak ditemukan');
   }
 
   return prisma.product.update({
@@ -99,9 +92,7 @@ async function addVariant(productId, { grade, pricePerKg, stockKg, lowStockThres
     where: { id: productId },
   });
   if (!product) {
-    const err = new Error('Produk tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Produk tidak ditemukan');
   }
 
   try {
@@ -130,16 +121,12 @@ async function updateVariant(variantId, data) {
     where: { id: variantId },
   });
   if (!variant) {
-    const err = new Error('Varian tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Varian tidak ditemukan');
   }
 
   // Ensure pricePerKg is NOT modified
   if (data.pricePerKg !== undefined && Number(data.pricePerKg) !== Number(variant.pricePerKg)) {
-    const err = new Error('Harga tidak boleh diubah melalui endpoint ini');
-    err.status = 400;
-    throw err;
+    throw new AppError(400, 'Harga tidak boleh diubah melalui endpoint ini');
   }
 
   // Strip pricePerKg from update payload to avoid any accidental updates
@@ -203,9 +190,7 @@ async function getProductPublicDetail(id) {
   });
 
   if (!product || !product.isActive) {
-    const err = new Error('Produk tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Produk tidak ditemukan');
   }
 
   return product;

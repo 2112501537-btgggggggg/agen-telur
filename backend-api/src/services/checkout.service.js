@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 const { isAddressInServiceArea } = require('./serviceArea.service');
 const { getConfig } = require('./membershipConfig.service');
 
@@ -9,18 +10,14 @@ async function validateCheckout(userId, addressId, items) {
   });
 
   if (!address || address.userId !== userId) {
-    const err = new Error('Alamat tidak ditemukan atau bukan milik Anda');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Alamat tidak ditemukan atau bukan milik Anda');
   }
 
   // 2. Cek area layanan
   const inServiceArea = await isAddressInServiceArea(address.city, address.kecamatan);
   if (!inServiceArea) {
     const districtText = address.kecamatan ? `${address.kecamatan}, ` : '';
-    const err = new Error(`Maaf, kami belum melayani pengiriman ke ${districtText}${address.city}`);
-    err.status = 400;
-    throw err;
+    throw new AppError(400, `Maaf, kami belum melayani pengiriman ke ${districtText}${address.city}`);
   }
 
   // 3. Ambil UnitConversion
@@ -49,18 +46,14 @@ async function validateCheckout(userId, addressId, items) {
   for (const item of items) {
     const variant = variantMap[item.productVariantId];
     if (!variant || !variant.product.isActive) {
-      const err = new Error('Produk tidak ditemukan atau tidak aktif');
-      err.status = 400;
-      throw err;
+      throw new AppError(400, 'Produk tidak ditemukan atau tidak aktif');
     }
 
     const multiplier = conversionMap[item.unit] || 1;
     const weightKgEquivalent = item.quantity * multiplier;
 
     if (weightKgEquivalent > Number(variant.stockKg)) {
-      const err = new Error(`Stok ${variant.product.name} (${variant.grade}) tidak cukup, sisa ${variant.stockKg}kg`);
-      err.status = 400;
-      throw err;
+      throw new AppError(400, `Stok ${variant.product.name} (${variant.grade}) tidak cukup, sisa ${variant.stockKg}kg`);
     }
 
     const itemSubtotal = weightKgEquivalent * Number(variant.pricePerKg);
@@ -84,9 +77,7 @@ async function validateCheckout(userId, addressId, items) {
   const minOrder = Number(config.minimumOrderKg);
   if (totalWeightKg < minOrder) {
     const needed = minOrder - totalWeightKg;
-    const err = new Error(`Minimum order ${minOrder}kg, pesanan Anda baru ${totalWeightKg}kg. Tambah ${needed}kg lagi.`);
-    err.status = 400;
-    throw err;
+    throw new AppError(400, `Minimum order ${minOrder}kg, pesanan Anda baru ${totalWeightKg}kg. Tambah ${needed}kg lagi.`);
   }
 
   // 6. Hitung diskon member

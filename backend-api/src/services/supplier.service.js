@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 async function listSuppliers() {
   return prisma.supplier.findMany({
@@ -18,9 +19,7 @@ async function updateSupplier(id, { name, contact, address }) {
   });
 
   if (!existing) {
-    const err = new Error('Supplier tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Supplier tidak ditemukan');
   }
 
   return prisma.supplier.update({
@@ -35,9 +34,7 @@ async function deleteSupplier(id) {
   });
 
   if (!existing) {
-    const err = new Error('Supplier tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Supplier tidak ditemukan');
   }
 
   return prisma.supplier.delete({

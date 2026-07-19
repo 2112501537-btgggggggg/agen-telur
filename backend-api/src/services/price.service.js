@@ -1,4 +1,5 @@
 const prisma = require('../utils/prisma');
+const AppError = require('../utils/AppError');
 
 async function updateVariantPrice(variantId, newPrice, adminUserId) {
   const variant = await prisma.productVariant.findUnique({
@@ -6,9 +7,7 @@ async function updateVariantPrice(variantId, newPrice, adminUserId) {
   });
 
   if (!variant) {
-    const err = new Error('Varian produk tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Varian produk tidak ditemukan');
   }
 
   return prisma.$transaction(async (tx) => {
@@ -45,9 +44,7 @@ async function bulkUpdatePrices(updates, adminUserId) {
       });
 
       if (!variant) {
-        const err = new Error(`Varian produk dengan ID ${productVariantId} tidak ditemukan`);
-        err.status = 404;
-        throw err;
+        throw new AppError(404, `Varian produk dengan ID ${productVariantId} tidak ditemukan`);
       }
 
       await tx.priceHistory.create({
@@ -97,9 +94,7 @@ async function getPriceHistory(variantId) {
   });
 
   if (!variantExists) {
-    const err = new Error('Varian produk tidak ditemukan');
-    err.status = 404;
-    throw err;
+    throw new AppError(404, 'Varian produk tidak ditemukan');
   }
 
   return prisma.priceHistory.findMany({

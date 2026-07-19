@@ -1,34 +1,17 @@
 const { categorySchema } = require('../validators/category.validator');
 const categoryService = require('../services/category.service');
+const asyncHandler = require('../utils/asyncHandler');
 
-function formatZodError(err) {
-  return err.issues.map(e => ({ path: e.path.join('.'), message: e.message }));
-}
-
-async function index(req, res, next) {
-  try {
+const index = asyncHandler(async (req, res) => {
     const categories = await categoryService.listCategories();
-    res.status(200).json({ success: true, data: categories });
-  } catch (err) {
-    next(err);
-  }
-}
+    res.status(200).json({ success: true, data: categories });});
 
-async function store(req, res, next) {
-  try {
+const store = asyncHandler(async (req, res) => {
     const validated = categorySchema.parse(req.body);
     const category = await categoryService.createCategory(validated);
-    res.status(201).json({ success: true, data: category });
-  } catch (err) {
-    if (err.name === 'ZodError') {
-      return res.status(400).json({ success: false, errors: formatZodError(err) });
-    }
-    next(err);
-  }
-}
+    res.status(201).json({ success: true, data: category });});
 
-async function update(req, res, next) {
-  try {
+const update = asyncHandler(async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.status(400).json({ success: false, message: 'ID tidak valid' });
@@ -36,28 +19,16 @@ async function update(req, res, next) {
 
     const validated = categorySchema.parse(req.body);
     const category = await categoryService.updateCategory(id, validated);
-    res.status(200).json({ success: true, data: category });
-  } catch (err) {
-    if (err.name === 'ZodError') {
-      return res.status(400).json({ success: false, errors: formatZodError(err) });
-    }
-    next(err);
-  }
-}
+    res.status(200).json({ success: true, data: category });});
 
-async function destroy(req, res, next) {
-  try {
+const destroy = asyncHandler(async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
       return res.status(400).json({ success: false, message: 'ID tidak valid' });
     }
 
     await categoryService.deleteCategory(id);
-    res.status(200).json({ success: true, message: 'Kategori berhasil dihapus' });
-  } catch (err) {
-    next(err);
-  }
-}
+    res.status(200).json({ success: true, message: 'Kategori berhasil dihapus' });});
 
 module.exports = {
   index,
