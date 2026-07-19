@@ -73,8 +73,79 @@ async function getLowStockVariants() {
     }));
 }
 
+/**
+ * Sales report: penjualan harian dalam rentang tanggal (hanya order PAID)
+ */
+async function getSalesReport(from, to) {
+  const result = await prisma.$queryRaw`
+    SELECT DATE(createdAt) as date, SUM(totalAmount) as totalSales
+    FROM \`Order\`
+    WHERE paymentStatus = 'PAID' AND createdAt >= ${from} AND createdAt <= ${to}
+    GROUP BY DATE(createdAt)
+    ORDER BY date ASC
+  `;
+
+  return result.map(row => ({
+    date: row.date instanceof Date ? row.date.toISOString().split('T')[0] : row.date,
+    totalSales: Number(row.totalSales),
+  }));
+}
+
+/**
+ * Damaged report: akumulasi damagedEggCount per produk dari Review
+ */
+async function getDamagedReport(limit = 10) {
+  const reviews = await prisma.review.findMany({
+    where: {
+      damagedEggCount: { gt: 0 },
+    },
+    include: {
+      order: {
+        include: {
+          items: {
+            include: {
+              variant: {
+                include: {
+                  product: {
+                    select: { name: true },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const productDamaged = new Map();
+
+  for (const review of reviews) {
+    const products = new Map();
+    for (const item of review.order.items) {
+      const productId = item.variant.productId;
+      if (!products.has(productId)) {
+        products.set(productId, item.variant.product.name);
+      }
+    }
+    for (const [productId, productName] of products) {
+      const current = productDamaged.get(productId) || { productId, productName, totalDamaged: 0 };
+      current.totalDamaged += Number(review.damagedEggCount);
+      productDamaged.set(productId, current);
+    }
+  }
+
+  const sorted = Array.from(productDamaged.values())
+    .sort((a, b) => b.totalDamaged - a.totalDamaged)
+    .slice(0, limit);
+
+  return sorted;
+}
+
 module.exports = {
   getSalesSummary,
   getOrdersByStatus,
   getLowStockVariants,
+  getSalesReport,
+  getDamagedReport,
 };
