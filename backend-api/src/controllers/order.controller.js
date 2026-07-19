@@ -92,6 +92,19 @@ async function cancelOrder(req, res, next) {
   }
 }
 
+async function confirmCodPayment(req, res, next) {
+  try {
+    const orderId = parseInt(req.params.id, 10);
+    if (isNaN(orderId)) {
+      return res.status(400).json({ success: false, message: 'ID Pesanan harus berupa angka' });
+    }
+    const result = await orderService.confirmCodPayment(orderId, req.user.id);
+    res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+}
+
 module.exports = {
   store,
   index,
@@ -100,4 +113,5 @@ module.exports = {
   adminShow,
   updateStatus,
   cancelOrder,
+  confirmCodPayment,
 };
