@@ -30,6 +30,7 @@ const stockInRoutes = require('./routes/stockIn.routes');
 const orderRoutes = require('./routes/order.routes');
 const unitConversionRoutes = require('./routes/unitConversion.routes');
 const paymentRoutes = require('./routes/payment.routes');
+const reviewRoutes = require('./routes/review.routes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
@@ -47,6 +48,7 @@ app.use('/api/admin/membership-config', membershipConfigRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/unit-conversions', unitConversionRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api', reviewRoutes);
 
 // Centralized error handler
 app.use((err, req, res, next) => {
