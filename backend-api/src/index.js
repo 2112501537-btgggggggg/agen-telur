@@ -30,6 +30,7 @@ const stockInRoutes = require('./routes/stockIn.routes');
 const orderRoutes = require('./routes/order.routes');
 const unitConversionRoutes = require('./routes/unitConversion.routes');
 const paymentRoutes = require('./routes/payment.routes');
+const dashboardRoutes = require('./routes/dashboard.routes');
 const reviewRoutes = require('./routes/review.routes');
 
 app.use('/api/auth', authRoutes);
@@ -48,6 +49,7 @@ app.use('/api/admin/membership-config', membershipConfigRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/unit-conversions', unitConversionRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/admin', dashboardRoutes);
 app.use('/api', reviewRoutes);
 
 // Centralized error handler
