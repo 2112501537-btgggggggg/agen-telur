@@ -1,0 +1,3 @@
+const STATUS_ORDER = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
+
+module.exports = { STATUS_ORDER };
