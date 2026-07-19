@@ -559,6 +559,47 @@ async function cancelOrder(orderId) {
   };
 }
 
+async function confirmCodPayment(orderId, adminUserId) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+  });
+
+  if (!order) {
+    const err = new Error('Pesanan tidak ditemukan');
+    err.status = 404;
+    throw err;
+  }
+
+  if (order.paymentType !== 'COD') {
+    const err = new Error('Order ini menggunakan Midtrans, status pembayarannya otomatis lewat webhook, bukan konfirmasi manual');
+    err.status = 400;
+    throw err;
+  }
+
+  if (order.paymentStatus === 'PAID') {
+    const err = new Error('Pembayaran order ini sudah dikonfirmasi sebelumnya');
+    err.status = 400;
+    throw err;
+  }
+
+  const updatedOrder = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      paymentStatus: 'PAID',
+      codConfirmedBy: adminUserId,
+      codConfirmedAt: new Date(),
+    },
+  });
+
+  return {
+    id: updatedOrder.id,
+    orderNumber: updatedOrder.orderNumber,
+    paymentStatus: updatedOrder.paymentStatus,
+    codConfirmedBy: updatedOrder.codConfirmedBy,
+    codConfirmedAt: updatedOrder.codConfirmedAt,
+  };
+}
+
 module.exports = {
   createOrder,
   listOrders,
@@ -567,4 +608,5 @@ module.exports = {
   getOrderDetailAdmin,
   updateOrderStatus,
   cancelOrder,
+  confirmCodPayment,
 };
