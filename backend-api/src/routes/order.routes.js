@@ -1,6 +1,6 @@
 const express = require('express');
 const { validateCheckout } = require('../controllers/checkout.controller');
-const { store, index, show, adminIndex, adminShow, updateStatus } = require('../controllers/order.controller');
+const { store, index, show, adminIndex, adminShow, updateStatus, cancelOrder } = require('../controllers/order.controller');
 const authMiddleware = require('../middlewares/authMiddleware');
 const { requireRole } = require('../middlewares/roleMiddleware');
 
@@ -18,5 +18,6 @@ router.get('/:id', show);
 router.get('/admin/orders', authMiddleware, requireRole(['ADMIN', 'STAFF']), adminIndex);
 router.get('/admin/orders/:id', authMiddleware, requireRole(['ADMIN', 'STAFF']), adminShow);
 router.put('/admin/orders/:id/status', authMiddleware, requireRole(['ADMIN', 'STAFF']), updateStatus);
+router.put('/admin/orders/:id/cancel', authMiddleware, requireRole(['ADMIN', 'STAFF']), cancelOrder);
 
 module.exports = router;

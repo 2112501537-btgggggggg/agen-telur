@@ -507,6 +507,58 @@ async function updateOrderStatus(orderId, newStatus) {
   };
 }
 
+async function cancelOrder(orderId) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: { items: true },
+  });
+
+  if (!order) {
+    const err = new Error('Pesanan tidak ditemukan');
+    err.status = 404;
+    throw err;
+  }
+
+  // Validasi status: hanya PENDING, CONFIRMED, PROCESSING yang bisa dibatalkan
+  const cancellableStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING'];
+  if (!cancellableStatuses.includes(order.status)) {
+    const err = new Error(`Order dengan status ${order.status} tidak bisa dibatalkan`);
+    err.status = 400;
+    throw err;
+  }
+
+  // Jalankan dalam transaction: update status + kembalikan stok
+  const result = await prisma.$transaction(async (tx) => {
+    // Update status jadi CANCELLED
+    const updatedOrder = await tx.order.update({
+      where: { id: orderId },
+      data: { status: 'CANCELLED' },
+    });
+
+    // Kembalikan stok untuk setiap item
+    for (const item of order.items) {
+      await tx.productVariant.update({
+        where: { id: item.productVariantId },
+        data: {
+          stockKg: {
+            increment: item.weightKgEquivalent,
+          },
+        },
+      });
+    }
+
+    return {
+      orderId: updatedOrder.id,
+      status: updatedOrder.status,
+    };
+  });
+
+  return {
+    ...result,
+    message: 'Order berhasil dibatalkan, stok telah dikembalikan',
+  };
+}
+
 module.exports = {
   createOrder,
   listOrders,
@@ -514,4 +566,5 @@ module.exports = {
   listOrdersAdmin,
   getOrderDetailAdmin,
   updateOrderStatus,
+  cancelOrder,
 };
