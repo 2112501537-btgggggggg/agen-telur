@@ -24,6 +24,14 @@ const createOrderSchema = z.object({
   ).min(1, 'Items minimal berisi 1 barang'),
 });
 
+const updateStatusSchema = z.object({
+  status: z.enum(['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'], {
+    required_error: 'Status wajib diisi',
+    invalid_type_error: 'Status harus bernilai PENDING, CONFIRMED, PROCESSING, SHIPPED, atau DELIVERED',
+  }),
+});
+
 module.exports = {
   createOrderSchema,
+  updateStatusSchema,
 };

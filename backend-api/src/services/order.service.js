@@ -2,6 +2,7 @@ const prisma = require('../utils/prisma');
 const { validateCheckout } = require('./checkout.service');
 const { generateOrderNumber } = require('../utils/orderNumber.util');
 const { snap } = require('../utils/midtrans.util');
+const { STATUS_ORDER } = require('../constants/orderStatus');
 
 async function createOrder(userId, data) {
   // 1. Panggil validateCheckout untuk pengecekan validasi alamat, service area, minimum order, dan stok awal
@@ -340,8 +341,177 @@ async function getOrderDetail(userId, orderId) {
   };
 }
 
+async function listOrdersAdmin(filters = {}) {
+  const where = {};
+
+  if (filters.status) {
+    where.status = filters.status;
+  }
+  if (filters.paymentStatus) {
+    where.paymentStatus = filters.paymentStatus;
+  }
+  if (filters.from || filters.to) {
+    where.createdAt = {};
+    if (filters.from) {
+      where.createdAt.gte = new Date(filters.from);
+    }
+    if (filters.to) {
+      where.createdAt.lte = new Date(filters.to);
+    }
+  }
+
+  const orders = await prisma.order.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      orderNumber: true,
+      status: true,
+      paymentStatus: true,
+      paymentType: true,
+      totalWeightKg: true,
+      totalAmount: true,
+      createdAt: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+        },
+      },
+      _count: {
+        select: { items: true },
+      },
+    },
+  });
+
+  return orders.map(order => ({
+    ...order,
+    totalWeightKg: Number(order.totalWeightKg),
+    totalAmount: Number(order.totalAmount),
+    itemCount: order._count.items,
+    _count: undefined,
+  }));
+}
+
+async function getOrderDetailAdmin(orderId) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+        },
+      },
+      address: true,
+      items: {
+        include: {
+          variant: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    const err = new Error('Pesanan tidak ditemukan');
+    err.status = 404;
+    throw err;
+  }
+
+  return {
+    id: order.id,
+    orderNumber: order.orderNumber,
+    userId: order.userId,
+    addressId: order.addressId,
+    status: order.status,
+    totalWeightKg: Number(order.totalWeightKg),
+    subtotalAmount: Number(order.subtotalAmount),
+    discountAmount: Number(order.discountAmount),
+    totalAmount: Number(order.totalAmount),
+    paymentStatus: order.paymentStatus,
+    paymentType: order.paymentType,
+    midtransOrderId: order.midtransOrderId,
+    midtransTransactionId: order.midtransTransactionId,
+    paymentChannel: order.paymentChannel,
+    codConfirmedBy: order.codConfirmedBy,
+    codConfirmedAt: order.codConfirmedAt,
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+    user: order.user,
+    address: order.address,
+    items: order.items.map(item => ({
+      id: item.id,
+      orderId: item.orderId,
+      productVariantId: item.productVariantId,
+      unit: item.unit,
+      quantity: Number(item.quantity),
+      weightKgEquivalent: Number(item.weightKgEquivalent),
+      pricePerKg: Number(item.pricePerKg),
+      subtotal: Number(item.subtotal),
+      productName: item.variant.product.name,
+      grade: item.variant.grade,
+    })),
+  };
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+  });
+
+  if (!order) {
+    const err = new Error('Pesanan tidak ditemukan');
+    err.status = 404;
+    throw err;
+  }
+
+  // Cek terminal state: CANCELLED atau DELIVERED tidak bisa diubah lagi
+  if (order.status === 'CANCELLED' || order.status === 'DELIVERED') {
+    const err = new Error(`Order sudah dalam status akhir (${order.status}), tidak bisa diubah lagi`);
+    err.status = 400;
+    throw err;
+  }
+
+  // Pastikan newStatus bukan CANCELLED (CANCELLED tidak ada di STATUS_ORDER)
+  if (newStatus === 'CANCELLED') {
+    const err = new Error('Gunakan endpoint cancel untuk membatalkan order');
+    err.status = 400;
+    throw err;
+  }
+
+  const currentIndex = STATUS_ORDER.indexOf(order.status);
+  const newIndex = STATUS_ORDER.indexOf(newStatus);
+
+  if (newIndex <= currentIndex) {
+    const err = new Error('Tidak bisa mengubah status ke urutan yang sama atau mundur');
+    err.status = 400;
+    throw err;
+  }
+
+  const updatedOrder = await prisma.order.update({
+    where: { id: orderId },
+    data: { status: newStatus },
+  });
+
+  return {
+    id: updatedOrder.id,
+    orderNumber: updatedOrder.orderNumber,
+    status: updatedOrder.status,
+  };
+}
+
 module.exports = {
   createOrder,
   listOrders,
   getOrderDetail,
+  listOrdersAdmin,
+  getOrderDetailAdmin,
+  updateOrderStatus,
 };
