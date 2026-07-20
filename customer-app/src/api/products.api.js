@@ -9,3 +9,6 @@ export const listProducts = ({ categoryId, search, page, limit } = {}) => {
 
   return axiosClient.get('/products', { params }).then((res) => res.data);
 };
+
+export const getProductById = (id) =>
+  axiosClient.get(`/products/${id}`).then((res) => res.data);
