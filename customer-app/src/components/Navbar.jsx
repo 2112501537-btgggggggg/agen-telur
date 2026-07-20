@@ -42,11 +42,16 @@ export default function Navbar({ searchQuery, onSearchChange, onSearchSubmit }) 
         </Link>
 
         {/* Profil / Login */}
-        <div className="text-sm font-medium shrink-0">
+        <div className="text-sm font-medium shrink-0 flex items-center gap-3">
           {isAuthenticated ? (
-            <Link to="/profile" className="text-barn-brown hover:text-egg-yolk transition-colors">
-              {user?.name}
-            </Link>
+            <>
+              <Link to="/addresses" className="text-neutral-500 hover:text-egg-yolk transition-colors">
+                Alamat
+              </Link>
+              <Link to="/profile" className="text-barn-brown hover:text-egg-yolk transition-colors">
+                {user?.name}
+              </Link>
+            </>
           ) : (
             <Link to="/login" className="text-egg-yolk hover:text-warm-amber transition-colors">
               Login

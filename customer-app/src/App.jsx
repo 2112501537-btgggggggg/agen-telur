@@ -4,6 +4,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
+import AddressPage from './pages/AddressPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function CheckoutPlaceholder() {
   return (
@@ -22,6 +24,14 @@ function App() {
       <Route path="/products/:id" element={<ProductDetailPage />} />
       <Route path="/cart" element={<CartPage />} />
       <Route path="/checkout" element={<CheckoutPlaceholder />} />
+      <Route
+        path="/addresses"
+        element={
+          <ProtectedRoute>
+            <AddressPage />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
