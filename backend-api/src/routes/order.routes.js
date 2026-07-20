@@ -4,21 +4,24 @@ const { store, index, show, adminIndex, adminShow, updateStatus, cancelOrder, co
 const authMiddleware = require('../middlewares/authMiddleware');
 const { requireRole } = require('../middlewares/roleMiddleware');
 
-const router = express.Router();
+// Customer routes — mount at /api/orders
+const customerRouter = express.Router();
+customerRouter.use(authMiddleware);
 
-// Customer routes
-router.use(authMiddleware);
+customerRouter.post('/validate', validateCheckout);
+customerRouter.post('/', store);
+customerRouter.get('/', index);
+customerRouter.get('/:id', show);
 
-router.post('/validate', validateCheckout);
-router.post('/', store);
-router.get('/', index);
-router.get('/:id', show);
+// Admin routes — mount at /api/admin/orders
+const adminRouter = express.Router();
+adminRouter.use(authMiddleware);
+adminRouter.use(requireRole(['ADMIN', 'STAFF']));
 
-// Admin routes
-router.get('/admin/orders', authMiddleware, requireRole(['ADMIN', 'STAFF']), adminIndex);
-router.get('/admin/orders/:id', authMiddleware, requireRole(['ADMIN', 'STAFF']), adminShow);
-router.put('/admin/orders/:id/status', authMiddleware, requireRole(['ADMIN', 'STAFF']), updateStatus);
-router.put('/admin/orders/:id/cancel', authMiddleware, requireRole(['ADMIN', 'STAFF']), cancelOrder);
-router.put('/admin/orders/:id/confirm-cod-payment', authMiddleware, requireRole(['ADMIN', 'STAFF']), confirmCodPayment);
+adminRouter.get('/', adminIndex);
+adminRouter.get('/:id', adminShow);
+adminRouter.put('/:id/status', updateStatus);
+adminRouter.put('/:id/cancel', cancelOrder);
+adminRouter.put('/:id/confirm-cod-payment', confirmCodPayment);
 
-module.exports = router;
+module.exports = { customerRouter, adminRouter };
