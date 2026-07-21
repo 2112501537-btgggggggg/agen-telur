@@ -45,6 +45,9 @@ export default function Navbar({ searchQuery, onSearchChange, onSearchSubmit }) 
         <div className="text-sm font-medium shrink-0 flex items-center gap-3">
           {isAuthenticated ? (
             <>
+              <Link to="/orders" className="text-neutral-500 hover:text-egg-yolk transition-colors">
+                Pesanan
+              </Link>
               <Link to="/addresses" className="text-neutral-500 hover:text-egg-yolk transition-colors">
                 Alamat
               </Link>

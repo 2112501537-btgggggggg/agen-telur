@@ -7,6 +7,7 @@ import CartPage from './pages/CartPage';
 import AddressPage from './pages/AddressPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderDetailPage from './pages/OrderDetailPage';
+import OrderHistoryPage from './pages/OrderHistoryPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -24,6 +25,14 @@ function App() {
         element={
           <ProtectedRoute>
             <CheckoutPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/orders"
+        element={
+          <ProtectedRoute>
+            <OrderHistoryPage />
           </ProtectedRoute>
         }
       />
