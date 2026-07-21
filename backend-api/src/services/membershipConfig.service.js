@@ -28,7 +28,20 @@ async function updateConfig(data) {
   });
 }
 
+/**
+ * Get public membership info — only exposes non-sensitive fields.
+ * Safe to call without authentication.
+ */
+async function getPublicMembershipInfo() {
+  const config = await getConfig();
+  return {
+    pointsThresholdForMember: config.pointsThresholdForMember,
+    memberDiscountPercent: config.memberDiscountPercent,
+  };
+}
+
 module.exports = {
   getConfig,
   updateConfig,
+  getPublicMembershipInfo,
 };
