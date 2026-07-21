@@ -5,15 +5,9 @@ import RegisterPage from './pages/RegisterPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import AddressPage from './pages/AddressPage';
+import CheckoutPage from './pages/CheckoutPage';
+import OrderDetailPage from './pages/OrderDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
-
-function CheckoutPlaceholder() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-fresh-cream">
-      <p className="text-barn-brown text-lg">Halaman checkout, segera hadir</p>
-    </div>
-  );
-}
 
 function App() {
   return (
@@ -23,7 +17,24 @@ function App() {
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/products/:id" element={<ProductDetailPage />} />
       <Route path="/cart" element={<CartPage />} />
-      <Route path="/checkout" element={<CheckoutPlaceholder />} />
+
+      {/* Protected Routes */}
+      <Route
+        path="/checkout"
+        element={
+          <ProtectedRoute>
+            <CheckoutPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/orders/:id"
+        element={
+          <ProtectedRoute>
+            <OrderDetailPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/addresses"
         element={
