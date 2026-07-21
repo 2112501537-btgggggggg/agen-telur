@@ -13,7 +13,13 @@ const update = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, data: updated });
 });
 
+const showPublic = asyncHandler(async (req, res) => {
+    const info = await membershipConfigService.getPublicMembershipInfo();
+    res.status(200).json({ success: true, data: info });
+});
+
 module.exports = {
   show,
   update,
+  showPublic,
 };
