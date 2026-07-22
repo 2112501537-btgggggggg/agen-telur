@@ -3,15 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
 import LoginPage from './pages/LoginPage';
-
-function Dashboard() {
-  return (
-    <div>
-      <h2 className="text-2xl font-bold text-slate-800">Dashboard</h2>
-      <p className="text-slate-500 mt-2">Selamat datang di panel admin toko telur.</p>
-    </div>
-  );
-}
+import DashboardPage from './pages/DashboardPage';
 
 function Placeholder({ title }) {
   return (
@@ -52,7 +44,7 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/kategori" element={<Placeholder title="Kategori" />} />
         <Route path="/produk" element={<Placeholder title="Produk" />} />
         <Route path="/harga-harian" element={<Placeholder title="Harga Harian" />} />
