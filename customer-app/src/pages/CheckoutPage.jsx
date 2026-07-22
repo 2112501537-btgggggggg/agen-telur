@@ -352,7 +352,7 @@ export default function CheckoutPage() {
                 </div>
               )}
 
-              {validationResult && (
+              {validationResult && validationResult.isValid && (
                 <>
                   {/* Weight info */}
                   {validationResult.totalWeightKg && (
@@ -363,25 +363,6 @@ export default function CheckoutPage() {
                       </span>
                     </div>
                   )}
-
-                  {/* If invalid with minimum order info */}
-                  {!validationResult.isValid &&
-                    errorMessage.toLowerCase().includes('minimum') && (
-                      <div className="w-full bg-straw-yellow rounded-full h-2">
-                        <div
-                          className="bg-egg-yolk h-2 rounded-full"
-                          style={{
-                            width:
-                              validationResult.totalWeightKg
-                                ? `${Math.min(
-                                    100,
-                                    (Number(validationResult.totalWeightKg) / 5) * 100
-                                  )}%`
-                                : '0%',
-                          }}
-                        />
-                      </div>
-                    )}
 
                   {/* Subtotal */}
                   <div className="flex justify-between text-sm text-neutral-500">
@@ -421,6 +402,37 @@ export default function CheckoutPage() {
                       )}
                     </span>
                   </div>
+                </>
+              )}
+
+              {/* Weight progress bar for minimum order warning */}
+              {validationResult && !validationResult.isValid && errorMessage && (
+                <>
+                  {validationResult.totalWeightKg && (
+                    <div className="flex justify-between text-sm text-neutral-500">
+                      <span>Total berat</span>
+                      <span className="font-medium text-barn-brown">
+                        {Number(validationResult.totalWeightKg).toFixed(1)} kg
+                      </span>
+                    </div>
+                  )}
+
+                  {errorMessage.toLowerCase().includes('minimum') && (
+                    <div className="w-full bg-straw-yellow rounded-full h-2">
+                      <div
+                        className="bg-egg-yolk h-2 rounded-full"
+                        style={{
+                          width:
+                            validationResult.totalWeightKg
+                              ? `${Math.min(
+                                  100,
+                                  (Number(validationResult.totalWeightKg) / 5) * 100
+                                )}%`
+                              : '0%',
+                        }}
+                      />
+                    </div>
+                  )}
                 </>
               )}
 
