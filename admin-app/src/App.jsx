@@ -1,33 +1,79 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Sidebar from './components/layout/Sidebar';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import ProtectedRoute from './routes/ProtectedRoute';
+import AdminLayout from './layouts/AdminLayout';
+import LoginPage from './pages/LoginPage';
 
-function Dashboard() { return <div className="p-6"><h2 className="text-2xl font-bold text-slate-800">Dashboard</h2><p className="text-slate-500 mt-2">Selamat datang di panel admin toko telur.</p></div>; }
-function Products() { return <div className="p-6"><h2 className="text-2xl font-bold text-slate-800">Kelola Produk</h2><p className="text-slate-500 mt-2">Modul produk akan diimplementasikan di sini.</p></div>; }
-function PriceUpdate() { return <div className="p-6"><h2 className="text-2xl font-bold text-slate-800">Update Harga</h2><p className="text-slate-500 mt-2">Modul riwayat dan update harga telur.</p></div>; }
-function Categories() { return <div className="p-6"><h2 className="text-2xl font-bold text-slate-800">Kategori</h2><p className="text-slate-500 mt-2">Kelola kategori produk.</p></div>; }
-function Suppliers() { return <div className="p-6"><h2 className="text-2xl font-bold text-slate-800">Supplier</h2><p className="text-slate-500 mt-2">Kelola supplier / peternak telur.</p></div>; }
-function Orders() { return <div className="p-6"><h2 className="text-2xl font-bold text-slate-800">Pesanan</h2><p className="text-slate-500 mt-2">Daftar pesanan pelanggan.</p></div>; }
-function ServiceArea() { return <div className="p-6"><h2 className="text-2xl font-bold text-slate-800">Service Area</h2><p className="text-slate-500 mt-2">Kelola area layanan pengiriman.</p></div>; }
-
-function App() {
+function Dashboard() {
   return (
-    <Router>
-      <div className="flex bg-slate-50 min-h-screen">
-        <Sidebar />
-        <main className="flex-1 bg-white min-h-screen">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/products" element={<Products />} />
-            <Route path="/price-update" element={<PriceUpdate />} />
-            <Route path="/categories" element={<Categories />} />
-            <Route path="/suppliers" element={<Suppliers />} />
-            <Route path="/orders" element={<Orders />} />
-            <Route path="/service-area" element={<ServiceArea />} />
-          </Routes>
-        </main>
-      </div>
-    </Router>
+    <div>
+      <h2 className="text-2xl font-bold text-slate-800">Dashboard</h2>
+      <p className="text-slate-500 mt-2">Selamat datang di panel admin toko telur.</p>
+    </div>
   );
 }
 
-export default App;
+function Placeholder({ title }) {
+  return (
+    <div>
+      <h2 className="text-2xl font-bold text-slate-800">{title}</h2>
+      <p className="text-slate-500 mt-2">Halaman ini akan segera tersedia.</p>
+    </div>
+  );
+}
+
+function LoginRedirect() {
+  const { isAuthenticated: isAuth } = useAuth();
+  if (isAuth) return <Navigate to="/dashboard" replace />;
+  return <LoginPage />;
+}
+
+function AppRoutes() {
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-sm text-slate-500">Memuat...</p>
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route
+        path="/login"
+        element={<LoginRedirect />}
+      />
+      <Route
+        element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/kategori" element={<Placeholder title="Kategori" />} />
+        <Route path="/produk" element={<Placeholder title="Produk" />} />
+        <Route path="/harga-harian" element={<Placeholder title="Harga Harian" />} />
+        <Route path="/stok" element={<Placeholder title="Stok" />} />
+        <Route path="/supplier" element={<Placeholder title="Supplier" />} />
+        <Route path="/pesanan" element={<Placeholder title="Pesanan" />} />
+        <Route path="/service-area" element={<Placeholder title="Service Area" />} />
+        <Route path="/membership" element={<Placeholder title="Membership Config" />} />
+        <Route path="/laporan" element={<Placeholder title="Laporan" />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </Router>
+  );
+}
