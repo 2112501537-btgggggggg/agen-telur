@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage';
 import CategoryPage from './pages/CategoryPage';
 import ProductListPage from './pages/ProductListPage';
 import ProductFormPage from './pages/ProductFormPage';
+import PriceUpdatePage from './pages/PriceUpdatePage';
 
 function Placeholder({ title }) {
   return (
@@ -53,7 +54,7 @@ function AppRoutes() {
         <Route path="/produk" element={<ProductListPage />} />
         <Route path="/produk/tambah" element={<ProductFormPage />} />
         <Route path="/produk/:id/edit" element={<ProductFormPage />} />
-        <Route path="/harga-harian" element={<Placeholder title="Harga Harian" />} />
+        <Route path="/harga-harian" element={<PriceUpdatePage />} />
         <Route path="/stok" element={<Placeholder title="Stok" />} />
         <Route path="/supplier" element={<Placeholder title="Supplier" />} />
         <Route path="/pesanan" element={<Placeholder title="Pesanan" />} />
