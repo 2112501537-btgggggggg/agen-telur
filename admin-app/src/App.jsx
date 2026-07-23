@@ -14,6 +14,7 @@ import OrderListPage from './pages/OrderListPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import ServiceAreaPage from './pages/ServiceAreaPage';
 import MembershipConfigPage from './pages/MembershipConfigPage';
+import ReportsPage from './pages/ReportsPage';
 
 function Placeholder({ title }) {
   return (
@@ -65,7 +66,7 @@ function AppRoutes() {
         <Route path="/pesanan/:id" element={<OrderDetailPage />} />
         <Route path="/service-area" element={<ServiceAreaPage />} />
         <Route path="/membership" element={<MembershipConfigPage />} />
-        <Route path="/laporan" element={<Placeholder title="Laporan" />} />
+        <Route path="/laporan" element={<ReportsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
