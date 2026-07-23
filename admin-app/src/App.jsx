@@ -9,6 +9,7 @@ import CategoryPage from './pages/CategoryPage';
 import ProductListPage from './pages/ProductListPage';
 import ProductFormPage from './pages/ProductFormPage';
 import PriceUpdatePage from './pages/PriceUpdatePage';
+import StockManagementPage from './pages/StockManagementPage';
 
 function Placeholder({ title }) {
   return (
@@ -55,8 +56,7 @@ function AppRoutes() {
         <Route path="/produk/tambah" element={<ProductFormPage />} />
         <Route path="/produk/:id/edit" element={<ProductFormPage />} />
         <Route path="/harga-harian" element={<PriceUpdatePage />} />
-        <Route path="/stok" element={<Placeholder title="Stok" />} />
-        <Route path="/supplier" element={<Placeholder title="Supplier" />} />
+        <Route path="/stok" element={<StockManagementPage />} />
         <Route path="/pesanan" element={<Placeholder title="Pesanan" />} />
         <Route path="/service-area" element={<Placeholder title="Service Area" />} />
         <Route path="/membership" element={<Placeholder title="Membership Config" />} />
