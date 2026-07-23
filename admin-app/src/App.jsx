@@ -10,6 +10,8 @@ import ProductListPage from './pages/ProductListPage';
 import ProductFormPage from './pages/ProductFormPage';
 import PriceUpdatePage from './pages/PriceUpdatePage';
 import StockManagementPage from './pages/StockManagementPage';
+import OrderListPage from './pages/OrderListPage';
+import OrderDetailPage from './pages/OrderDetailPage';
 
 function Placeholder({ title }) {
   return (
@@ -57,7 +59,8 @@ function AppRoutes() {
         <Route path="/produk/:id/edit" element={<ProductFormPage />} />
         <Route path="/harga-harian" element={<PriceUpdatePage />} />
         <Route path="/stok" element={<StockManagementPage />} />
-        <Route path="/pesanan" element={<Placeholder title="Pesanan" />} />
+        <Route path="/pesanan" element={<OrderListPage />} />
+        <Route path="/pesanan/:id" element={<OrderDetailPage />} />
         <Route path="/service-area" element={<Placeholder title="Service Area" />} />
         <Route path="/membership" element={<Placeholder title="Membership Config" />} />
         <Route path="/laporan" element={<Placeholder title="Laporan" />} />
