@@ -1,9 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import ProtectedRoute from './routes/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
+import CategoryPage from './pages/CategoryPage';
 
 function Placeholder({ title }) {
   return (
@@ -45,7 +47,7 @@ function AppRoutes() {
         }
       >
         <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/kategori" element={<Placeholder title="Kategori" />} />
+        <Route path="/kategori" element={<CategoryPage />} />
         <Route path="/produk" element={<Placeholder title="Produk" />} />
         <Route path="/harga-harian" element={<Placeholder title="Harga Harian" />} />
         <Route path="/stok" element={<Placeholder title="Stok" />} />
@@ -64,7 +66,9 @@ export default function App() {
   return (
     <Router>
       <AuthProvider>
-        <AppRoutes />
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
       </AuthProvider>
     </Router>
   );
