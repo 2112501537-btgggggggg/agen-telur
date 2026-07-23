@@ -6,6 +6,8 @@ import AdminLayout from './layouts/AdminLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import CategoryPage from './pages/CategoryPage';
+import ProductListPage from './pages/ProductListPage';
+import ProductFormPage from './pages/ProductFormPage';
 
 function Placeholder({ title }) {
   return (
@@ -48,7 +50,9 @@ function AppRoutes() {
       >
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/kategori" element={<CategoryPage />} />
-        <Route path="/produk" element={<Placeholder title="Produk" />} />
+        <Route path="/produk" element={<ProductListPage />} />
+        <Route path="/produk/tambah" element={<ProductFormPage />} />
+        <Route path="/produk/:id/edit" element={<ProductFormPage />} />
         <Route path="/harga-harian" element={<Placeholder title="Harga Harian" />} />
         <Route path="/stok" element={<Placeholder title="Stok" />} />
         <Route path="/supplier" element={<Placeholder title="Supplier" />} />
