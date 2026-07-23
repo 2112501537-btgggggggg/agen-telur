@@ -12,6 +12,8 @@ import PriceUpdatePage from './pages/PriceUpdatePage';
 import StockManagementPage from './pages/StockManagementPage';
 import OrderListPage from './pages/OrderListPage';
 import OrderDetailPage from './pages/OrderDetailPage';
+import ServiceAreaPage from './pages/ServiceAreaPage';
+import MembershipConfigPage from './pages/MembershipConfigPage';
 
 function Placeholder({ title }) {
   return (
@@ -61,8 +63,8 @@ function AppRoutes() {
         <Route path="/stok" element={<StockManagementPage />} />
         <Route path="/pesanan" element={<OrderListPage />} />
         <Route path="/pesanan/:id" element={<OrderDetailPage />} />
-        <Route path="/service-area" element={<Placeholder title="Service Area" />} />
-        <Route path="/membership" element={<Placeholder title="Membership Config" />} />
+        <Route path="/service-area" element={<ServiceAreaPage />} />
+        <Route path="/membership" element={<MembershipConfigPage />} />
         <Route path="/laporan" element={<Placeholder title="Laporan" />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
